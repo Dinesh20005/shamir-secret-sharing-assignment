@@ -1,0 +1,46 @@
+const fs = require('fs');
+
+function decodeValue(base, value) {
+    return BigInt(parseInt(value, parseInt(base)));
+}
+
+function lagrangeInterpolation(points) {
+    let secret = BigInt(0);
+    for (let i = 0; i < points.length; i++) {
+        let xi = BigInt(points[i][0]);
+        let yi = BigInt(points[i][1]);
+        let num = BigInt(1);
+        let den = BigInt(1);
+        for (let j = 0; j < points.length; j++) {
+            if (i !== j) {
+                let xj = BigInt(points[j][0]);
+                num *= -xj;
+                den *= xi - xj;
+            }
+        }
+        secret += yi * num / den;
+    }
+    return secret;
+}
+
+function solve(filePath) {
+    const data = JSON.parse(fs.readFileSync(filePath));
+    const k = data.keys.k;
+    const decodedPoints = [];
+
+    for (let key in data) {
+        if (key === 'keys') continue;
+        const x = parseInt(key);
+        const base = data[key].base;
+        const value = data[key].value;
+        const y = decodeValue(base, value);
+        decodedPoints.push([x, y]);
+        if (decodedPoints.length === k) break;
+    }
+
+    const secret = lagrangeInterpolation(decodedPoints);
+    return secret.toString();
+}
+
+console.log("Secret 1:", solve("testcase1.json"));
+console.log("Secret 2:", solve("testcase2.json"));
